@@ -1,1 +1,45 @@
+单例模式定义：一个类有且只有一个实例，并且自行实例化提供给系统使用
+
+手敲代码如下（c++）：
+
+#include<iostream>
+#include<mutex>
+using namespace std;
+
+class Singleton{
+private:
+    Singleton(){}                                 // 构造函数私有化
+    static mutex m_Mutex;                         // 互斥锁
+    static Singleton* m_pInstance;                // 声明一个本类的实例(--初始化不能放在此处--个人实测)
+public:
+    static Singleton* GetInstance()               // 提供该类实例的唯一接口
+    {
+        // 美其名曰：Double Check + LOCK （解决多线程问题）
+        if(m_pInstance==NULL)                     // 第一次判断
+        {
+            m_Mutex.lock();                       // 加锁
+            if(m_pInstance==NULL)                 // 第二次判断（多线程竞争进入可能导致new多个实例，再一次判断）
+            {
+                
+                m_pInstance = new Singleton();
+            }
+            m_Mutex.unlock();                     // 解锁
+        }
+        return m_pInstance;
+    }
+    void TestMessage()                            // 测试函数
+    {
+        cout<<"Singleton Pattern"<<endl;
+    }
+};
+
+mutex Singleton::m_Mutex;                         // 全局定义实例初始化
+Singleton* Singleton::m_pInstance = NULL;         // 全局定义实例初始化 （如果没有初始化则报错，提示“无法解析外部符号”--------个人实测）
+
+int main()
+{
+    Singleton* pSingleton = Singleton::GetInstance();
+    pSingleton->TestMessage();
+    return 0;
+}
 
